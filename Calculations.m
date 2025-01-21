@@ -1,0 +1,275 @@
+%% LOAD IN .MAT FILES FROM PROCESSING
+clc;
+clear all;
+folderPath = "Saved_Process";
+
+matFiles = dir(fullfile(folderPath, '*.mat'));
+
+for file = 1:length(matFiles)
+
+    % Get the full file name
+    fileName = matFiles(file).name;
+    fullFilePath = fullfile(folderPath, fileName);
+
+
+    load(fullFilePath);
+
+    % define eventframes with labels 
+    RHS(:, 1) = rmintab; %col 1 is the frames from RHS
+    RHS(:, 2) = repmat(1, length(rmintab), 1); %col 2 is the label to categorize this as RHS
+    LTO(:, 1) = ltoeloc;
+    LTO(:, 2) = repmat(2, length(ltoeloc), 1);
+    LHS(: ,1) = lmintab;
+    LHS(:, 2) = repmat(3, length(lmintab), 1);
+    RTO(:, 1) = rtoeloc;
+    RTO(:, 2) = repmat(4, length(rtoeloc), 1);
+    allevents = vertcat(RHS, LTO, LHS, RTO);
+    allevents = sortrows(allevents, 1);
+    
+    %%
+    
+    P_output = struct();
+    step_counter = 1;
+    
+    for hs_frame = 1:length(allevents)
+        % Try catch to end the loop when we get to the end
+        try 
+            allevents(hs_frame + 2, 2);
+        catch
+            disp("End of Events")
+            break
+        end
+        
+        % Skip over toe offs
+        if allevents(hs_frame,2) == 2 || allevents(hs_frame,2) == 4
+            continue
+        end
+    
+    
+        % Skip over turns
+        if abs(allevents(hs_frame,1) - allevents(hs_frame+2,1)) > 200
+            continue
+        end
+        
+        % Assign current and previous frame
+        current_frame = allevents(hs_frame, 1);
+        next_frame = allevents(hs_frame + 2, 1);
+        
+    
+        %%% Calculations
+        
+       % Determine leg
+        leg_side = allevents(hs_frame, 2);
+        
+        % We do this to set the correct data for indexing based on which foot
+        % is the starting foot
+        if leg_side == 1
+            side = "Right";
+            foot_final = rfoot_final;
+            other_foot_final = lfoot_final;
+        elseif leg_side == 3
+            side = "Left";
+            foot_final = lfoot_final;
+            other_foot_final = rfoot_final;
+        end
+    
+        
+        % Determing parameters based on index of our current heel strike and
+        % finding the difference using the next opposite heel strike
+        step_length = abs(foot_final(current_frame, 1) - other_foot_final(next_frame, 1));
+        step_width = abs(foot_final(current_frame, 3) - other_foot_final(next_frame, 3));
+        gait_speed = (step_length) / ((.01)*(next_frame - current_frame));
+    
+        steps(step_counter, 1) = step_length;
+        steps(step_counter, 2) = step_width;
+        steps(step_counter, 3) = gait_speed;
+        
+        
+        subject = strcat("Subject_", headerInfo.Subject);  % Get the subject from header info
+        trial = strcat("Trial_", headerInfo.Trial);     % Get the trial name from header info
+    
+        % get subject number as single digit
+        % Convert the cell value to a string
+        str = string(headerInfo.Subject);
+        % Replace all non-numeric characters with an empty string
+        str = regexprep(str, '[^0-9\.]', '');
+        % Convert the string back to a number and store it in the cell array
+        headerInfo.Subject = str2double(str);
+        % Convert the number back to a string and store it in the cell array
+        headerInfo.Subject = num2str(headerInfo.Subject);
+    
+        Output(file).Subject = headerInfo.Subject;
+        Output(file).Trial = headerInfo.Trial;
+        Output(file).Task = headerInfo.Task;
+        Output(file).Elevation = headerInfo.Elevation;
+        Output(file).Steplength = steps(:,1);
+        Output(file).Stepwidth = steps(:,2);
+        Output(file).gaitspeed =  steps(:,3);
+        % Output(file).cadence =  cadence;
+        % Output(file).rfoot_final = rfoot_final(:,2);
+        % Output(file).lfoot_final = lfoot_final(:,2);
+         FullOutput = Output;
+    
+        framesoutput(file).Subject = headerInfo.Subject;
+            framesoutput(file).Trial = headerInfo.Trial;
+            framesoutput(file).Task = headerInfo.Task;
+            framesoutput(file).Elevation = headerInfo.Elevation;
+             framesoutput(file).frame = allevents(:,1);
+            % framesoutput(file).turnindex = stepframes(:,2);
+            fullframesoutput = framesoutput;
+    
+    
+            for gg = 1:length(Output);
+               FullOutput(gg).meanStepLength = mean(FullOutput(gg).Steplength);
+                FullOutput(gg).medianStepLength = median(FullOutput(gg).Steplength);
+                FullOutput(gg).sdStepLength = std(FullOutput(gg).Steplength);
+                FullOutput(gg).maxStepLength = max(FullOutput(gg).Steplength);
+                FullOutput(gg).minStepLength = min(FullOutput(gg).Steplength);
+                FullOutput(gg).meanStepWidth = mean(FullOutput(gg).Stepwidth);
+                FullOutput(gg).medianStepWidth = median(FullOutput(gg).Stepwidth);
+                FullOutput(gg).sdStepWidth = std(FullOutput(gg).Stepwidth);
+                FullOutput(gg).maxStepWidth = max(FullOutput(gg).Stepwidth);
+                FullOutput(gg).minStepWidth = min(FullOutput(gg).Stepwidth);
+                FullOutput(gg).meanGaitSpeed = mean(FullOutput(gg).gaitspeed);
+                FullOutput(gg).medianGaitSpeed = median(FullOutput(gg).gaitspeed);
+                FullOutput(gg).sdGaitSpeed = std(FullOutput(gg).gaitspeed);
+                FullOutput(gg).maxGaitSpeed = max(FullOutput(gg).gaitspeed);
+                FullOutput(gg).minGaitSpeed = min(FullOutput(gg).gaitspeed);
+                %FullOutput(gg).cadence = (FullOutput(gg).cadence);
+                
+    
+        step_counter = step_counter + 1;
+    
+       
+     
+    end
+    
+    end
+
+    clear RHS LHS LTO RTO rmintab rmaxtab lmintab lmaxtab ltoeloc ltoemin rtoeloc rtoemin allevents
+
+
+
+end
+
+
+%% NEW CALCULATIONS 
+
+% creating a matrix of all the gait event frames, column 1 is RHS, column 2
+% is LHS, column 3 is RTO, and column 4 is LTO 
+
+
+%     end
+
+
+
+%%
+savedir = strcat(pwd, '/PDTVR');
+fullfile(savedir, 'FullOutput.mat')
+save(fullfile(savedir, 'FullOutput.mat'), 'FullOutput');
+save(fullfile(savedir, 'fullframesoutput.mat'), 'fullframesoutput')
+
+%%
+% save for future opening
+ savedir = strcat(pwd, '/PDTVR');
+  save(fullfile(savedir, 'FullOutput.mat'), 'FullOutput');
+  load(fullfile(savedir, 'FullOutput.mat'))
+  load(fullfile(savedir, 'fullframesoutput.mat'))
+
+% FullOutput = load('/Users/kpore/Documents/PhD Kinesiology/Research/Raffegeau/Kelly_PilotDiss/FullOutput.mat');
+% FullOutput = FullOutput.FullOutput;
+FullOutput = struct2table(FullOutput);
+fullframesoutput = struct2table(fullframesoutput);
+
+%% Exporting the Cadence into it's own matrix/csv
+
+% 
+% CadenceOnly = FullOutput.cadence;
+% 
+% writematrix(CadenceOnly, 'CadenceOnly.csv');
+
+%%
+%FullOutput = struct2table(FullOutput);
+sz = [1, 8];
+varNames = {'Subject', 'Task', 'Elevation', 'StepNum', 'Steplength', 'Stepwidth', 'gaitspeed', 'cadence'};
+varTypes = {'string', 'string', 'string', 'double', 'double', 'double', 'double', 'double'};
+TableOutput = table('Size', sz, 'VariableTypes', varTypes, 'VariableNames', varNames);
+TableOutput(1, :) = {"Subject", "Task", "Elevation", "StepNum", "Steplength", "Stepwidth", "gaitspeed", "cadence"};
+
+for k = 1:size(FullOutput,1)
+
+    % Subject ID 
+    Subject = FullOutput(k, 1);
+    % Task 
+    Task = FullOutput(k, 3);
+    % Elevation 
+    Elevation = FullOutput(k, 4);
+
+    NumbSteps = size(FullOutput.Steplength{k})
+    StepNum = table([1 : NumbSteps]');
+    StepNum.Properties.VariableNames = "StepNum";
+    % Steplength
+    Steplength = array2table(FullOutput.Steplength{k});
+    Steplength.Properties.VariableNames = "Steplength";
+    % Stepwidth
+    Stepwidth = array2table(FullOutput.Stepwidth{k});
+    Stepwidth.Properties.VariableNames = "Stepwidth";
+    % Gaitspeed
+    gaitspeed = array2table(FullOutput.gaitspeed{k})
+    gaitspeed.Properties.VariableNames = "gaitspeed";
+    % Cadence
+    Cadence = FullOutput(k, 8);
+    
+
+    Subject = repmat(Subject,NumbSteps);
+    Task = repmat(Task,NumbSteps); 
+    Elevation = repmat(Elevation, NumbSteps);
+    Cadence = repmat(Cadence, NumbSteps)
+    
+%     datamatrix(k, 1) = Subject;
+%     datamatrix(k, 2) = Task;
+%     datamatrix(k, 3) = Elevation;
+%     datamatrix(k, 4) = StepNum
+%     datamatrix(k, 5) = vertcat(Steplength_start, Steplength_end);
+    
+    % Combine them into a new table
+    datamatrix = horzcat(Subject, Task, Elevation, StepNum, Steplength, Stepwidth, gaitspeed, Cadence);
+    TableOutput = vertcat(TableOutput, datamatrix);
+
+
+% % Display the new table
+% disp(newTable);
+
+end 
+
+
+
+sz = [1, 1];
+varNames = {'stepframes'};
+varTypes = {'double'};
+FramesOutput = table('Size', sz, 'VariableTypes', varTypes, 'VariableNames', varNames);
+frameslength = size(fullframesoutput, 1);
+
+for z = (frameslength-3) : frameslength
+    frame = array2table(fullframesoutput.frame{z});
+    turnindex = table2array(fullframesoutput(z, 6));
+    turnindex = cell2mat(turnindex);
+
+    for f = 1:numel(turnindex)
+    if turnindex(f) == 1 
+        stepframes = frame(f, :);
+        stepframes.Properties.VariableNames = "stepframes";
+        FramesOutput = vertcat(FramesOutput, stepframes);
+    else
+        f = f+1;
+        
+    end
+   end 
+end 
+
+
+% FinalOutput = horzcat(TableOutput, FramesOutput);
+
+
+writetable(TableOutput, 'HMD_Output78.csv');
+writetable(FramesOutput, 'FramesOutputNeedsWork78.csv')

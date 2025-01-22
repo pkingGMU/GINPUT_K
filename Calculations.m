@@ -110,43 +110,45 @@ for file = 1:length(matFiles)
         % Output(file).lfoot_final = lfoot_final(:,2);
          FullOutput = Output;
     
-        framesoutput(file).Subject = headerInfo.Subject;
-            framesoutput(file).Trial = headerInfo.Trial;
-            framesoutput(file).Task = headerInfo.Task;
-            framesoutput(file).Elevation = headerInfo.Elevation;
-             framesoutput(file).frame = allevents(:,1);
-            % framesoutput(file).turnindex = stepframes(:,2);
-            fullframesoutput = framesoutput;
+        % framesoutput(file).Subject = headerInfo.Subject;
+        %     framesoutput(file).Trial = headerInfo.Trial;
+        %     framesoutput(file).Task = headerInfo.Task;
+        %     framesoutput(file).Elevation = headerInfo.Elevation;
+        %      framesoutput(file).frame = allevents(:,1);
+        %     % framesoutput(file).turnindex = stepframes(:,2);
+        %     fullframesoutput = framesoutput;
     
     
-            for gg = 1:length(Output);
-               FullOutput(gg).meanStepLength = mean(FullOutput(gg).Steplength);
-                FullOutput(gg).medianStepLength = median(FullOutput(gg).Steplength);
-                FullOutput(gg).sdStepLength = std(FullOutput(gg).Steplength);
-                FullOutput(gg).maxStepLength = max(FullOutput(gg).Steplength);
-                FullOutput(gg).minStepLength = min(FullOutput(gg).Steplength);
-                FullOutput(gg).meanStepWidth = mean(FullOutput(gg).Stepwidth);
-                FullOutput(gg).medianStepWidth = median(FullOutput(gg).Stepwidth);
-                FullOutput(gg).sdStepWidth = std(FullOutput(gg).Stepwidth);
-                FullOutput(gg).maxStepWidth = max(FullOutput(gg).Stepwidth);
-                FullOutput(gg).minStepWidth = min(FullOutput(gg).Stepwidth);
-                FullOutput(gg).meanGaitSpeed = mean(FullOutput(gg).gaitspeed);
-                FullOutput(gg).medianGaitSpeed = median(FullOutput(gg).gaitspeed);
-                FullOutput(gg).sdGaitSpeed = std(FullOutput(gg).gaitspeed);
-                FullOutput(gg).maxGaitSpeed = max(FullOutput(gg).gaitspeed);
-                FullOutput(gg).minGaitSpeed = min(FullOutput(gg).gaitspeed);
-                %FullOutput(gg).cadence = (FullOutput(gg).cadence);
+        
+        
                 
     
         step_counter = step_counter + 1;
     
        
      
-    end
+    
     
     end
 
     clear RHS LHS LTO RTO rmintab rmaxtab lmintab lmaxtab ltoeloc ltoemin rtoeloc rtoemin allevents
+
+    FullOutput(file).meanStepLength = mean(FullOutput(file).Steplength);
+    FullOutput(file).medianStepLength = median(FullOutput(file).Steplength);
+    FullOutput(file).sdStepLength = std(FullOutput(file).Steplength);
+    FullOutput(file).maxStepLength = max(FullOutput(file).Steplength);
+    FullOutput(file).minStepLength = min(FullOutput(file).Steplength);
+    FullOutput(file).meanStepWidth = mean(FullOutput(file).Stepwidth);
+    FullOutput(file).medianStepWidth = median(FullOutput(file).Stepwidth);
+    FullOutput(file).sdStepWidth = std(FullOutput(file).Stepwidth);
+    FullOutput(file).maxStepWidth = max(FullOutput(file).Stepwidth);
+    FullOutput(file).minStepWidth = min(FullOutput(file).Stepwidth);
+    FullOutput(file).meanGaitSpeed = mean(FullOutput(file).gaitspeed);
+    FullOutput(file).medianGaitSpeed = median(FullOutput(file).gaitspeed);
+    FullOutput(file).sdGaitSpeed = std(FullOutput(file).gaitspeed);
+    FullOutput(file).maxGaitSpeed = max(FullOutput(file).gaitspeed);
+    FullOutput(file).minGaitSpeed = min(FullOutput(file).gaitspeed);
+    %FullOutput(file).cadence = (FullOutput(file).cadence);
 
 
 
@@ -167,19 +169,19 @@ end
 savedir = strcat(pwd, '/PDTVR');
 fullfile(savedir, 'FullOutput.mat')
 save(fullfile(savedir, 'FullOutput.mat'), 'FullOutput');
-save(fullfile(savedir, 'fullframesoutput.mat'), 'fullframesoutput')
+% save(fullfile(savedir, 'fullframesoutput.mat'), 'fullframesoutput')
 
 %%
 % save for future opening
  savedir = strcat(pwd, '/PDTVR');
   save(fullfile(savedir, 'FullOutput.mat'), 'FullOutput');
   load(fullfile(savedir, 'FullOutput.mat'))
-  load(fullfile(savedir, 'fullframesoutput.mat'))
+  % load(fullfile(savedir, 'fullframesoutput.mat'))
 
-% FullOutput = load('/Users/kpore/Documents/PhD Kinesiology/Research/Raffegeau/Kelly_PilotDiss/FullOutput.mat');
-% FullOutput = FullOutput.FullOutput;
-FullOutput = struct2table(FullOutput);
-fullframesoutput = struct2table(fullframesoutput);
+FullOutput = load(strcat(pwd, '/PDTVR/FullOutput.mat'));
+FullOutput = FullOutput.FullOutput;
+FullOutput = struct2table(FullOutput, 'AsArray', true);
+% fullframesoutput = struct2table(fullframesoutput);
 
 %% Exporting the Cadence into it's own matrix/csv
 
@@ -190,11 +192,11 @@ fullframesoutput = struct2table(fullframesoutput);
 
 %%
 %FullOutput = struct2table(FullOutput);
-sz = [1, 8];
-varNames = {'Subject', 'Task', 'Elevation', 'StepNum', 'Steplength', 'Stepwidth', 'gaitspeed', 'cadence'};
-varTypes = {'string', 'string', 'string', 'double', 'double', 'double', 'double', 'double'};
+sz = [1, 7];
+varNames = {'Subject', 'Task', 'Elevation', 'StepNum', 'Steplength', 'Stepwidth', 'gaitspeed'};
+varTypes = {'string', 'string', 'string', 'double', 'double', 'double', 'double'};
 TableOutput = table('Size', sz, 'VariableTypes', varTypes, 'VariableNames', varNames);
-TableOutput(1, :) = {"Subject", "Task", "Elevation", "StepNum", "Steplength", "Stepwidth", "gaitspeed", "cadence"};
+TableOutput(1, :) = {"Subject", "Task", "Elevation", "StepNum", "Steplength", "Stepwidth", "gaitspeed"};
 
 for k = 1:size(FullOutput,1)
 
@@ -218,13 +220,13 @@ for k = 1:size(FullOutput,1)
     gaitspeed = array2table(FullOutput.gaitspeed{k})
     gaitspeed.Properties.VariableNames = "gaitspeed";
     % Cadence
-    Cadence = FullOutput(k, 8);
+    % Cadence = FullOutput(k, 8);
     
 
     Subject = repmat(Subject,NumbSteps);
     Task = repmat(Task,NumbSteps); 
     Elevation = repmat(Elevation, NumbSteps);
-    Cadence = repmat(Cadence, NumbSteps)
+    % Cadence = repmat(Cadence, NumbSteps)
     
 %     datamatrix(k, 1) = Subject;
 %     datamatrix(k, 2) = Task;
@@ -233,7 +235,8 @@ for k = 1:size(FullOutput,1)
 %     datamatrix(k, 5) = vertcat(Steplength_start, Steplength_end);
     
     % Combine them into a new table
-    datamatrix = horzcat(Subject, Task, Elevation, StepNum, Steplength, Stepwidth, gaitspeed, Cadence);
+    % datamatrix = horzcat(Subject, Task, Elevation, StepNum, Steplength, Stepwidth, gaitspeed, Cadence);
+    datamatrix = horzcat(Subject, Task, Elevation, StepNum, Steplength, Stepwidth, gaitspeed);
     TableOutput = vertcat(TableOutput, datamatrix);
 
 
@@ -244,32 +247,32 @@ end
 
 
 
-sz = [1, 1];
-varNames = {'stepframes'};
-varTypes = {'double'};
-FramesOutput = table('Size', sz, 'VariableTypes', varTypes, 'VariableNames', varNames);
-frameslength = size(fullframesoutput, 1);
-
-for z = (frameslength-3) : frameslength
-    frame = array2table(fullframesoutput.frame{z});
-    turnindex = table2array(fullframesoutput(z, 6));
-    turnindex = cell2mat(turnindex);
-
-    for f = 1:numel(turnindex)
-    if turnindex(f) == 1 
-        stepframes = frame(f, :);
-        stepframes.Properties.VariableNames = "stepframes";
-        FramesOutput = vertcat(FramesOutput, stepframes);
-    else
-        f = f+1;
-        
-    end
-   end 
-end 
+% sz = [1, 1];
+% varNames = {'stepframes'};
+% varTypes = {'double'};
+% FramesOutput = table('Size', sz, 'VariableTypes', varTypes, 'VariableNames', varNames);
+% frameslength = size(fullframesoutput, 1);
+% 
+% for z = (frameslength-3) : frameslength
+%     frame = array2table(fullframesoutput.frame{z});
+%     turnindex = table2array(fullframesoutput(z, 6));
+%     turnindex = cell2mat(turnindex);
+% 
+%     for f = 1:numel(turnindex)
+%     if turnindex(f) == 1 
+%         stepframes = frame(f, :);
+%         stepframes.Properties.VariableNames = "stepframes";
+%         FramesOutput = vertcat(FramesOutput, stepframes);
+%     else
+%         f = f+1;
+% 
+%     end
+%    end 
+% end 
 
 
 % FinalOutput = horzcat(TableOutput, FramesOutput);
 
 
 writetable(TableOutput, 'HMD_Output78.csv');
-writetable(FramesOutput, 'FramesOutputNeedsWork78.csv')
+% writetable(FramesOutput, 'FramesOutputNeedsWork78.csv')
